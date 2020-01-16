@@ -1,51 +1,62 @@
 package com.visualdust.logUtility
 
 import java.awt.Color
-import java.io.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 import java.time.LocalDateTime
-
-import com.visualdust.logUtility.AttributedShellStr as ASS
-import com.visualdust.logUtility.AttributedShellStr.Companion.Styles as ShellStyle
-import com.visualdust.logUtility.AttributedShellStr.Companion.FGs as ShellFG
-import com.visualdust.logUtility.AttributedShellStr.Companion.BGs as ShellBG
-
 import com.visualdust.logUtility.AttributedHtmlStr as AHS
 import com.visualdust.logUtility.AttributedHtmlStr.Companion.BuiltInColors as BIColor
+import com.visualdust.logUtility.AttributedShellStr as ASS
+import com.visualdust.logUtility.AttributedShellStr.Companion.BGs as ShellBG
+import com.visualdust.logUtility.AttributedShellStr.Companion.FGs as ShellFG
+import com.visualdust.logUtility.AttributedShellStr.Companion.Styles as ShellStyle
 
 class Logger {
-    val generator: Class<Any>
+    val generator: Any
+    var timeout = DefaultTimeout
+        set(value) {
+            field = value
+        }
 
-    constructor(generator: Class<Any>) {
+    constructor(generator: Any) {
         this.generator = generator
+        add(OutStreamWithType(FileOutputStream(File(DefaultLogFileName), true), LogType.HTML))
+    }
+
+    constructor(generator: Any, autoAddDefaultLogFile: Boolean) {
+        this.generator = generator
+        if (autoAddDefaultLogFile)
+            add(OutStreamWithType(FileOutputStream(File(DefaultLogFileName), true), LogType.HTML))
     }
 
     fun add(stream: OutStreamWithType, channel: Int) {
-        channelDictionary.elementAt(channel).add(stream)
-        write(
-            stream.stream,
-            "++++++++++++++++++++++++++++++++++++\n" +
-                    "|      LogUtility got involved      |\n" +
-                    "++++++++++++++++++++++++++++++++++++\n" +
-                    "|  github.com/visualdust/LogUtility |\n" +
-                    "++++++++++++++++++++++++++++++++++++\n"
-        )
+        if (!channelDictionary.containsKey(channel))
+            channelDictionary.put(channel, mutableListOf())
+        channelDictionary.getValue(channel).add(stream)
+        write(stream.stream, "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---]--- got involved.</p>\n")
     }
 
     fun add(stream: OutStreamWithType) = add(stream, 0)
 
     fun remove(stream: OutputStream, channel: Int) {
-        for (streams in channelDictionary.elementAt(channel)) {
+        for (streams in channelDictionary.getValue(channel)) {
             if (stream.equals(streams.stream))
-                channelDictionary.elementAt(channel).remove(streams)
+                channelDictionary.getValue(channel).remove(streams)
         }
     }
 
-    fun log(str: String, channel: Int) = logFormatted("%tif%%gen%${LogSeparator}${str}", channel)
+    fun log(str: String, channel: Int) = logFormatted("%tif%${LogSeparator}%gen%${LogSeparator}${str}\n", channel)
     fun log(str: String) = log(str, 0)
-    fun log(e: Exception, channel: Int) = logFormatted("%false%%tif%%gen%${LogSeparator}${e}", channel)
+    fun log(e: Exception, channel: Int) =
+        logFormatted("%false%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${e}\n", channel)
+
     fun log(e: Exception) = log(e, 0)
     fun log(succeed: Boolean, message: String, channel: Int) =
-        logFormatted("%${succeed.toString().toLowerCase()}%%tif%%gen%${message}", channel)
+        logFormatted(
+            "%${succeed.toString().toLowerCase()}%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${message}\n",
+            channel
+        )
 
     fun log(succeed: Boolean, message: String) = log(succeed, message, 0)
 
@@ -73,11 +84,11 @@ class Logger {
     private fun logFormatted(str: String, type: LogType, channel: Int) {
         var LDT = LocalDateTime.now()
         when (type) {
-            LogType.Shell, LogType.Any -> {
+            LogType.Shell -> {
                 var processedStr = str
                     .replace(
                         "%gen%",
-                        ASS(generator.typeName).applyBG(ShellBG.Purple).applyFG(ShellFG.White).applyStyle(ShellStyle.Underline).toString()
+                        ASS(generator).applyBG(ShellBG.Purple).applyFG(ShellFG.White).applyStyle(ShellStyle.Underline).toString()
                     )
                     .replace("%true%", ASS("[√]").applyFG(ShellFG.Green).applyStyle(ShellStyle.Inverse).toString())
                     .replace("%false%", ASS("[×]").applyFG(ShellFG.Red).applyStyle(ShellStyle.Inverse).toString())
@@ -97,11 +108,11 @@ class Logger {
                     .replace("%nano%", ASS(LDT.nano).applyStyle(ShellStyle.Inverse).toString())
                 broadcast(processedStr, LogType.Shell, channel)
             }
-            LogType.HTML, LogType.Any -> {
-                var processedStr = str
+            LogType.HTML -> {
+                var processedStr = "<p>" + str
                     .replace(
                         "%gen%",
-                        AHS(generator.typeName).applyBG(Color(140, 0, 176)).applyFG(BIColor.White).toString()
+                        AHS(generator).applyBG(Color(140, 0, 176)).applyFG(BIColor.White).toString()
                     )
                     .replace("%true%", AHS("[√]").applyBG(BIColor.Green).applyFG(BIColor.White).toString())
                     .replace("%false%", AHS("[×]").applyBG(BIColor.Red).applyFG(BIColor.White).toString())
@@ -118,8 +129,12 @@ class Logger {
                     .replace("%hour%", AHS(LDT.hour).applyBG(BIColor.Gray).applyFG(BIColor.White).toString())
                     .replace("%min%", AHS(LDT.minute).applyBG(BIColor.Gray).applyFG(BIColor.White).toString())
                     .replace("%sec%", AHS(LDT.second).applyBG(BIColor.Gray).applyFG(BIColor.White).toString())
-                    .replace("%nano%", AHS(LDT.nano).applyBG(BIColor.Gray).applyFG(BIColor.White).toString())
+                    .replace("%nano%", AHS(LDT.nano).applyBG(BIColor.Gray).applyFG(BIColor.White).toString()) + "</p>"
                 broadcast(processedStr, LogType.HTML, channel)
+            }
+            LogType.Any -> {
+                logFormatted(str, LogType.HTML, channel)
+                logFormatted(str, LogType.Shell, channel)
             }
         }
     }
@@ -127,43 +142,42 @@ class Logger {
     private fun broadcast(message: String, channel: Int) = broadcast(message, LogType.Any, channel)
 
     private fun broadcast(message: String, type: LogType, channel: Int) {
+        if (!channelDictionary.containsKey(channel)) return
         if (channel != 0) broadcast(message, type, 0)
-        var subscriberList = channelDictionary.elementAt(channel)
-        if (subscriberList.count() == 0) return
+        var subscriberList = channelDictionary.getValue(channel)
         for (subscriber in subscriberList)
             if (subscriber.type == type) write(subscriber.stream, message)
     }
 
-    private fun write(stream: OutputStream, message: String) = Thread(StreamAttendant(stream, message)).start()
+    //todo rewrite this as an in queue writer and add exception resolvers
+    private fun write(stream: OutputStream, message: String){
+        stream.write(message.toByteArray())
+    }
 
     companion object {
         @JvmStatic
-        val DefauletLoggerName: String = ::Logger.name
+        val DefauletLoggerName: String = "Logger"
         private val OsProperties = System.getProperties()
         @JvmStatic
         var StartUpTime = LocalDateTime.now()
         @JvmStatic
+        val DefaultTimeout = 500L
+        @JvmStatic
         var LogSeparator = ">"
         @JvmStatic
-        var DefaultLogFile = File(
-            "${DefauletLoggerName}_" +
-                    "${StartUpTime.year}_" +
-                    "${StartUpTime.month}_" +
-                    "${StartUpTime.dayOfMonth}.log"
-        )
-        private var channelDictionary: MutableList<MutableList<OutStreamWithType>> = mutableListOf()
-
-        enum class LogType {
-            Any, HTML, Shell
-        }
+        var DefaultLogFileName =
+            "${DefauletLoggerName}_" + "${StartUpTime.year}_" + "${StartUpTime.month}_" + "${StartUpTime.dayOfMonth}_Log_.html"
+        private var channelDictionary = HashMap<Int, MutableList<OutStreamWithType>>()
     }
 
-    private class StreamAttendant(var stream: OutputStream, message: String) : Runnable {
-        public var timeout: Long = 10
+    enum class LogType {
+        Any, HTML, Shell
+    }
 
+    private class StreamAttendant(var stream: OutputStream, message: String, var timeout: Long) : Runnable {
         init {
             try {
-                stream.write(message.toByteArray());stream.close()
+                stream.write(message.toByteArray());stream.flush();stream.close()
             } catch (e: Exception) {
             }
         }
@@ -178,4 +192,4 @@ class Logger {
     }
 }
 
-class OutStreamWithType(var stream: OutputStream, var type: Logger.Companion.LogType)
+class OutStreamWithType(var stream: OutputStream, var type: Logger.LogType)
