@@ -19,21 +19,35 @@ class Logger {
         this.generator = generator
     }
 
-    /**
-     * @param ch
-     * Set ch to 0 to write to all the channel
-     */
-    fun log(str: String, ch: Int) {
-        //todo what to do
+    fun add(stream: OutStreamWithType, channel: Int) {
+        channelDictionary.elementAt(channel).add(stream)
+        write(
+            stream.stream,
+            "++++++++++++++++++++++++++++++++++++\n" +
+                    "|      LogUtility got involved      |\n" +
+                    "++++++++++++++++++++++++++++++++++++\n" +
+                    "|  github.com/visualdust/LogUtility |\n" +
+                    "++++++++++++++++++++++++++++++++++++\n"
+        )
     }
 
+    fun add(stream: OutStreamWithType) = add(stream, 0)
+
+    fun remove(stream: OutputStream, channel: Int) {
+        for (streams in channelDictionary.elementAt(channel)) {
+            if (stream.equals(streams.stream))
+                channelDictionary.elementAt(channel).remove(streams)
+        }
+    }
+
+    fun log(str: String, channel: Int) = logFormatted("%tif%%gen%${LogSeparator}${str}", channel)
     fun log(str: String) = log(str, 0)
-
-    fun log(e: Exception, channel: Int) {
-        //todo what todo
-    }
-
+    fun log(e: Exception, channel: Int) = logFormatted("%false%%tif%%gen%${LogSeparator}${e}", channel)
     fun log(e: Exception) = log(e, 0)
+    fun log(succeed: Boolean, message: String, channel: Int) =
+        logFormatted("%${succeed.toString().toLowerCase()}%%tif%%gen%${message}", channel)
+
+    fun log(succeed: Boolean, message: String) = log(succeed, message, 0)
 
     /**
      * @param formattedStr can include escape characters below :
@@ -110,28 +124,26 @@ class Logger {
         }
     }
 
-    fun add(stream: OutStreamWithType, channel: Int) {
-        //todo what todo
-    }
-
-    fun add(stream: OutStreamWithType) = add(stream, 0)
-
     private fun broadcast(message: String, channel: Int) = broadcast(message, LogType.Any, channel)
 
     private fun broadcast(message: String, type: LogType, channel: Int) {
-        //todo what to do
+        if (channel != 0) broadcast(message, type, 0)
+        var subscriberList = channelDictionary.elementAt(channel)
+        if (subscriberList.count() == 0) return
+        for (subscriber in subscriberList)
+            if (subscriber.type == type) write(subscriber.stream, message)
     }
 
-    private fun write(stream: OutStreamWithType, message: String) {
-        //todo what to do
-    }
+    private fun write(stream: OutputStream, message: String) = Thread(StreamAttendant(stream, message)).start()
 
     companion object {
         @JvmStatic
-        val DefauletLoggerName: String = this.javaClass.name
+        val DefauletLoggerName: String = ::Logger.name
         private val OsProperties = System.getProperties()
         @JvmStatic
         var StartUpTime = LocalDateTime.now()
+        @JvmStatic
+        var LogSeparator = ">"
         @JvmStatic
         var DefaultLogFile = File(
             "${DefauletLoggerName}_" +
@@ -139,22 +151,31 @@ class Logger {
                     "${StartUpTime.month}_" +
                     "${StartUpTime.dayOfMonth}.log"
         )
-        private var chDic: MutableList<MutableList<OutputStream>> = mutableListOf()
+        private var channelDictionary: MutableList<MutableList<OutStreamWithType>> = mutableListOf()
 
         enum class LogType {
             Any, HTML, Shell
         }
     }
 
-    private class StreamQueueAttendant : Runnable {
-        public var timeout: Int = 10
+    private class StreamAttendant(var stream: OutputStream, message: String) : Runnable {
+        public var timeout: Long = 10
 
-        constructor() {}
+        init {
+            try {
+                stream.write(message.toByteArray());stream.close()
+            } catch (e: Exception) {
+            }
+        }
 
         override fun run() {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            try {
+                Thread.sleep(timeout)
+                stream.close()
+            } catch (e: Exception) {
+            }
         }
     }
 }
 
-class OutStreamWithType(var channel: Int, var type: Logger.Companion.LogType)
+class OutStreamWithType(var stream: OutputStream, var type: Logger.Companion.LogType)
