@@ -43,8 +43,9 @@ class Logger {
         if (!channelDictionary.containsKey(channel))
             channelDictionary[channel] = mutableListOf()
         channelDictionary.getValue(channel).add(stream)
-        var initMessage = "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---]--- got involved.</p>\n" +
-                "<p>---[PlatForm info]</p>\n"
+        var initMessage =
+            "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---(Version:${Version})---]--- got involved.</p>\n" +
+                    "<p>---[PlatForm info]</p>\n"
         for (item in OsProperties)
             initMessage += "<p>" + item.key + " : " + item.value + "</p>\n"
         write(stream.stream, initMessage)
@@ -168,6 +169,8 @@ class Logger {
     }
 
     companion object {
+        @JvmStatic
+        val Version = "0.0.1.5"
         @JvmStatic
         val DefaultLoggerName: String = "Logger"
         private val OsProperties = System.getProperties()
