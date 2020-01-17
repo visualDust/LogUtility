@@ -43,16 +43,17 @@ class Logger {
         if (!channelDictionary.containsKey(channel))
             channelDictionary[channel] = mutableListOf()
         channelDictionary.getValue(channel).add(stream)
-        var initMessage =
-            "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---(Version:${Version})---]--- got involved.</p>\n" +
-                    "<p>---[PlatForm info]</p>\n"
-        for (item in OsProperties)
-            initMessage += "<p>" + item.key + " : " + item.value + "</p>\n"
-        write(stream.stream, initMessage)
+        if (WriteInitialOSProperties) {
+            var initMessage =
+                "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---(Version:${Version})---]--- got involved.</p>\n" +
+                        "<p>---[PlatForm info]</p>\n"
+            for (item in OsProperties)
+                initMessage += "<p>" + item.key + " : " + item.value + "</p>\n"
+            write(stream.stream, initMessage)
+        }
     }
 
     fun add(stream: OutStreamWithType) = add(stream, 0)
-
     fun remove(stream: OutputStream, channel: Int) {
         for (streams in channelDictionary.getValue(channel)) {
             if (stream == streams.stream)
@@ -62,8 +63,10 @@ class Logger {
 
     fun log(str: String, channel: Int) = logFormatted("%tif%${LogSeparator}%gen%${LogSeparator}${str}\n", channel)
     fun log(str: String) = log(str, 0)
-    fun log(e: Exception, channel: Int) =
+    fun log(e: Exception, channel: Int) {
         logFormatted("%false%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${e}\n", channel)
+        if (PrintStackTraceOnException) e.printStackTrace()
+    }
 
     fun log(e: Exception) = log(e, 0)
     fun log(succeed: Boolean, message: String, channel: Int) =
@@ -177,6 +180,8 @@ class Logger {
         @JvmStatic
         var StartUpTime: LocalDateTime = LocalDateTime.now()
         @JvmStatic
+        var WriteInitialOSProperties = true;
+        @JvmStatic
         val DefaultTimeout = 500L
         @JvmStatic
         var LogSeparator = ">"
@@ -184,6 +189,8 @@ class Logger {
         var DefaultLogFileName =
             "${DefaultLoggerName}_" + "${StartUpTime.year}_" + "${StartUpTime.month}_" + "${StartUpTime.dayOfMonth}_Log_.html"
         private var channelDictionary = HashMap<Int, MutableList<OutStreamWithType>>()
+        @JvmStatic
+        var PrintStackTraceOnException = false
     }
 
     enum class LogType {
