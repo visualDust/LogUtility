@@ -172,24 +172,16 @@ class Logger {
     }
 
     companion object {
-        @JvmStatic
         val Version = "0.0.1.5"
-        @JvmStatic
         val DefaultLoggerName: String = "Logger"
         private val OsProperties = System.getProperties()
-        @JvmStatic
         var StartUpTime: LocalDateTime = LocalDateTime.now()
-        @JvmStatic
         var WriteInitialOSProperties = true;
-        @JvmStatic
         val DefaultTimeout = 500L
-        @JvmStatic
         var LogSeparator = ">"
-        @JvmStatic
         var DefaultLogFileName =
             "${DefaultLoggerName}_" + "${StartUpTime.year}_" + "${StartUpTime.month}_" + "${StartUpTime.dayOfMonth}_Log_.html"
         private var channelDictionary = HashMap<Int, MutableList<OutStreamWithType>>()
-        @JvmStatic
         var PrintStackTraceOnException = false
     }
 

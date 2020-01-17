@@ -8,7 +8,7 @@ import java.io.FileOutputStream
 
 class Example_Kotlin_EN {
     fun runExample() {
-        WriteInitialOSProperties = false
+        Logger.WriteInitialOSProperties = false
         /* It's on by default. But you don't want to see any long-complex-meaningless logs
          * in this example right? So we set it to false here :)
          */

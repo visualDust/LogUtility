@@ -8,7 +8,7 @@ import java.io.FileOutputStream;
 
 public class Example_Java_EN {
     void runExample() {
-        Logger.setWriteInitialOSProperties(false);
+        Logger.Companion.setWriteInitialOSProperties(false);
         /* It's on by default. But you don't want to see any long-complex-meaningless logs
          * in this example right? So we set it to false here :)
          */
