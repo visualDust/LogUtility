@@ -43,7 +43,11 @@ class Logger {
         if (!channelDictionary.containsKey(channel))
             channelDictionary[channel] = mutableListOf()
         channelDictionary.getValue(channel).add(stream)
-        write(stream.stream, "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---]--- got involved.</p>\n")
+        var initMessage = "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---]--- got involved.</p>\n" +
+                "<p>---[PlatForm info]</p>\n"
+        for (item in OsProperties)
+            initMessage += "<p>" + item.key + " : " + item.value + "</p>\n"
+        write(stream.stream, initMessage)
     }
 
     fun add(stream: OutStreamWithType) = add(stream, 0)
