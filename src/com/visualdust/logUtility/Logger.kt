@@ -98,7 +98,7 @@ class Logger {
 
     fun logFormatted(formattedStr: String) = logFormatted(formattedStr, 0)
 
-    private fun logFormatted(str: String, type: LogType, channel: Int) {
+    fun logFormatted(str: String, type: LogType, channel: Int) {
         val ldt = LocalDateTime.now()
         when (type) {
             LogType.Shell -> {
@@ -173,12 +173,19 @@ class Logger {
 
     companion object {
         val Version = "0.0.1.5"
+        @JvmStatic
         val DefaultLoggerName: String = "Logger"
+        @JvmStatic
         private val OsProperties = System.getProperties()
+        @JvmStatic
         var StartUpTime: LocalDateTime = LocalDateTime.now()
-        var WriteInitialOSProperties = true;
+        @JvmStatic
+        var WriteInitialOSProperties = true
+        @JvmStatic
         val DefaultTimeout = 500L
+        @JvmStatic
         var LogSeparator = ">"
+        @JvmStatic
         var DefaultLogFileName =
             "${DefaultLoggerName}_" + "${StartUpTime.year}_" + "${StartUpTime.month}_" + "${StartUpTime.dayOfMonth}_Log_.html"
         private var channelDictionary = HashMap<Int, MutableList<OutStreamWithType>>()
