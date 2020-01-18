@@ -63,7 +63,7 @@ class Example_Kotlin_EN {
             "Ready to throw an exception! (this message will be received by both streams in channel 0 and streams in channel 3 cause. I declared this message should be sent to ch233. But ch0 is an channel that will receive all the messages so this will also be seen in ch0)",
             233
         )
-        logger.log("This is a message again for ch0 only", 0)
+        logger.log("This is a message again for ch0 only")
         logger.log("This is a message again for ch233 and ch0", 233)
         logger.log(Exception("AWSL"), 233)
         logger.log("Oops! Did I throw an exception into ch233?")
