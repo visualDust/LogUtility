@@ -5,7 +5,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.time.LocalDateTime
+import java.util.function.Consumer
 import kotlin.random.Random
+import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 import com.visualdust.logUtility.AttributedHtmlStr as AHS
 import com.visualdust.logUtility.AttributedHtmlStr.Companion.BuiltInColors as BIColor
 import com.visualdust.logUtility.AttributedShellStr as ASS
@@ -20,6 +22,9 @@ class Logger {
     private var genShellBG = ShellBG.White
     private var genHtmlBG = WebColor.White
     private var timeout = DefaultTimeout
+    private var exceptionResolvers:
+            HashMap<Int, MutableList<Consumer<RelatedEvent<Any, java.lang.Exception>>>> = HashMap()
+    private var eventResolvers: HashMap<Int, MutableList<Consumer<RelatedEvent<Any, String>>>> = HashMap()
 
     init {
         while (genShellBG == ShellBG.White || genShellBG == ShellBG.Black)
@@ -64,6 +69,9 @@ class Logger {
     fun log(str: String, channel: Int) = logFormatted("%tif%${LogSeparator}%gen%${LogSeparator}${str}\n", channel)
     fun log(str: String) = log(str, 0)
     fun log(e: Exception, channel: Int) {
+        if (exceptionResolvers.containsKey(channel))
+            for (resolver in exceptionResolvers.getValue(channel))
+                resolver.accept(RelatedEvent(generator, e))
         var eMessage = "${e.message}"
         var traceCnt = 0
         for (stacktrace in e.stackTrace) {
@@ -82,7 +90,6 @@ class Logger {
         )
 
     fun log(succeed: Boolean, message: String) = log(succeed, message, 0)
-
     /**
      * @param formattedStr can include escape characters below :
      * %gen%   ->  generator name
@@ -129,7 +136,7 @@ class Logger {
                     .replace("%min%", ASS(ldt.minute).applyStyle(ShellStyle.Inverse).toString())
                     .replace("%sec%", ASS(ldt.second).applyStyle(ShellStyle.Inverse).toString())
                     .replace("%nano%", ASS(ldt.nano).applyStyle(ShellStyle.Inverse).toString())
-                broadcast(processedStr, LogType.Shell, channel)
+                broadcast(str, processedStr, LogType.Shell, channel)
             }
             LogType.HTML -> {
                 val processedStr = "<p>" + str
@@ -153,7 +160,7 @@ class Logger {
                     .replace("%min%", AHS(ldt.minute).applyBG(BIColor.Gray).applyFG(BIColor.White).toString())
                     .replace("%sec%", AHS(ldt.second).applyBG(BIColor.Gray).applyFG(BIColor.White).toString())
                     .replace("%nano%", AHS(ldt.nano).applyBG(BIColor.Gray).applyFG(BIColor.White).toString()) + "</p>"
-                broadcast(processedStr, LogType.HTML, channel)
+                broadcast(str, processedStr, LogType.HTML, channel)
             }
             LogType.Any -> {
                 logFormatted(str, LogType.HTML, channel)
@@ -162,19 +169,36 @@ class Logger {
         }
     }
 
-    private fun broadcast(message: String, channel: Int) = broadcast(message, LogType.Any, channel)
+    private fun broadcast(oriMessage: String, message: String, channel: Int) =
+        broadcast(oriMessage, message, LogType.Any, channel)
 
-    private fun broadcast(message: String, type: LogType, channel: Int) {
+    private fun broadcast(oriMessage: String, message: String, type: LogType, channel: Int) {
+        if (eventResolvers.containsKey(channel))
+            for (resolver in eventResolvers.getValue(channel))
+                resolver.accept(RelatedEvent(generator, oriMessage))
         if (!channelDictionary.containsKey(channel)) return
-        if (channel != 0) broadcast(message, type, 0)
+        if (channel != 0) broadcast(oriMessage, message, type, 0)
         val subscriberList = channelDictionary.getValue(channel)
         for (subscriber in subscriberList)
             if (subscriber.type == type) write(subscriber.stream, message)
     }
 
-    //todo rewrite this as an in queue writer and add exception resolvers
     private fun write(stream: OutputStream, message: String) {
         Thread(StreamAttendant(stream, message, timeout)).start()
+    }
+
+    fun addEventResolver(resolver: Consumer<RelatedEvent<Any, String>>) = addEventResolver(resolver, 0)
+    fun addEventResolver(resolver: Consumer<RelatedEvent<Any, String>>, channel: Int) {
+        if (!eventResolvers.containsKey(channel)) eventResolvers.put(channel, mutableListOf())
+        eventResolvers.getValue(channel).add(resolver)
+    }
+
+    fun addExceptionResolver(resolver: Consumer<RelatedEvent<Any, java.lang.Exception>>) =
+        addExceptionResolver(resolver, 0)
+
+    fun addExceptionResolver(resolver: Consumer<RelatedEvent<Any, java.lang.Exception>>, channel: Int) {
+        if (!exceptionResolvers.containsKey(channel)) exceptionResolvers.put(channel, mutableListOf())
+        exceptionResolvers.getValue(channel).add(resolver)
     }
 
     companion object {
@@ -195,6 +219,8 @@ class Logger {
     public enum class LogType {
         Any, HTML, Shell
     }
+
+    class RelatedEvent<T, V>(val who: T, val message: V) {}
 
     private class StreamAttendant
         (var stream: OutputStream, message: String, var timeout: Long) : Runnable {
