@@ -64,7 +64,13 @@ class Logger {
     fun log(str: String, channel: Int) = logFormatted("%tif%${LogSeparator}%gen%${LogSeparator}${str}\n", channel)
     fun log(str: String) = log(str, 0)
     fun log(e: Exception, channel: Int) {
-        logFormatted("%false%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${e}\n", channel)
+        var eMessage = "${e.message}"
+        var traceCnt = 0
+        for (stacktrace in e.stackTrace) {
+            eMessage += "${LogSeparator}${stacktrace}"
+            if (++traceCnt >= LimitStackTraceOnException) break
+        }
+        logFormatted("%false%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${eMessage}\n", channel)
         if (PrintStackTraceOnException) e.printStackTrace()
     }
 
@@ -79,7 +85,7 @@ class Logger {
 
     /**
      * @param formattedStr can include escape characters below :
-     * %gen%   ->  generator class name
+     * %gen%   ->  generator name
      * %true%  ->  show a "√"
      * %false% ->  show a "×"
      * %tif%   ->  time in full
@@ -172,21 +178,15 @@ class Logger {
     }
 
     companion object {
-        val Version = "0.0.1.5"
-        @JvmStatic
-        val DefaultLoggerName: String = "Logger"
-        @JvmStatic
-        private val OsProperties = System.getProperties()
-        @JvmStatic
-        var StartUpTime: LocalDateTime = LocalDateTime.now()
-        @JvmStatic
-        var WriteInitialMessage = true
-        @JvmStatic
-        val DefaultTimeout = 500L
-        @JvmStatic
-        var LogSeparator = ">"
-        @JvmStatic
-        var DefaultLogFileName =
+        val Version = "0.0.1.6"
+        @JvmStatic var WriteInitialMessage = true
+        @JvmStatic val DefaultLoggerName: String = "Logger"
+        @JvmStatic private val OsProperties = System.getProperties()
+        @JvmStatic var StartUpTime: LocalDateTime = LocalDateTime.now()
+        @JvmStatic val DefaultTimeout = 500L
+        @JvmStatic var LogSeparator = ">"
+        @JvmStatic var LimitStackTraceOnException = 1
+        @JvmStatic var DefaultLogFileName =
             "${DefaultLoggerName}_" + "${StartUpTime.year}_" + "${StartUpTime.month}_" + "${StartUpTime.dayOfMonth}_Log_.html"
         private var channelDictionary = HashMap<Int, MutableList<OutStreamWithType>>()
         var PrintStackTraceOnException = false
