@@ -27,3 +27,7 @@ class MonitorGUI {
         constructor() {}
     }
 }
+
+fun main(){
+
+}

@@ -213,7 +213,7 @@ class Logger {
         @JvmStatic var DefaultLogFileName =
             "${DefaultLoggerName}_" + "${StartUpTime.year}_" + "${StartUpTime.month}_" + "${StartUpTime.dayOfMonth}_Log_.html"
         private var channelDictionary = HashMap<Int, MutableList<OutStreamWithType>>()
-        var PrintStackTraceOnException = false
+        @JvmStatic var PrintStackTraceOnException = false
     }
 
     public enum class LogType {
