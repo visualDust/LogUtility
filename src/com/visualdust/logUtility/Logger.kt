@@ -7,7 +7,6 @@ import java.io.OutputStream
 import java.time.LocalDateTime
 import java.util.function.Consumer
 import kotlin.random.Random
-import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 import com.visualdust.logUtility.AttributedHtmlStr as AHS
 import com.visualdust.logUtility.AttributedHtmlStr.Companion.BuiltInColors as BIColor
 import com.visualdust.logUtility.AttributedShellStr as ASS
@@ -31,6 +30,7 @@ class Logger {
             genShellBG = ShellBG.values().elementAt(Random.nextInt(0, ShellBG.values().size))
         while (genHtmlBG == WebColor.White)
             genHtmlBG = WebColor.values().elementAt(Random.nextInt(0, WebColor.values().size))
+        if (AutoBindToTerminal) add(OutStreamWithType(System.out, LogType.Shell))
     }
 
     constructor(generator: Any) {
@@ -50,7 +50,7 @@ class Logger {
         channelDictionary.getValue(channel).add(stream)
         var initMessage =
             "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---(Version:${Version})---]--- got involved.</p>\n"
-        if (WriteInitialMessage) {
+        if (WritePlatFormMessage) {
             initMessage += "<p>---[PlatForm info]</p>\n"
             for (item in OsProperties)
                 initMessage += "<p>" + item.key + " : " + item.value + "</p>\n"
@@ -76,7 +76,7 @@ class Logger {
         var traceCnt = 0
         for (i in e.stackTrace.lastIndex downTo 0) {
             eMessage += "${LogSeparator}${e.stackTrace[i]}"
-            if (++traceCnt >= LimitStackTraceOnException+1) break
+            if (++traceCnt >= LimitStackTraceOnException + 1) break
         }
         logFormatted("%false%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${eMessage}\n", channel)
         if (PrintStackTraceOnException) e.printStackTrace()
@@ -203,17 +203,18 @@ class Logger {
 
     companion object {
         val Version = "0.0.1.6"
-        @JvmStatic var WriteInitialMessage = true
+        @JvmStatic var WritePlatFormMessage = true
         @JvmStatic val DefaultLoggerName: String = "Logger"
         @JvmStatic private val OsProperties = System.getProperties()
         @JvmStatic var StartUpTime: LocalDateTime = LocalDateTime.now()
         @JvmStatic val DefaultTimeout = 500L
         @JvmStatic var LogSeparator = ">"
         @JvmStatic var LimitStackTraceOnException = 1
+        @JvmStatic var PrintStackTraceOnException = false
+        @JvmStatic var AutoBindToTerminal = true
         @JvmStatic var DefaultLogFileName =
             "${DefaultLoggerName}_" + "${StartUpTime.year}_" + "${StartUpTime.month}_" + "${StartUpTime.dayOfMonth}_Log_.html"
         private var channelDictionary = HashMap<Int, MutableList<OutStreamWithType>>()
-        @JvmStatic var PrintStackTraceOnException = false
     }
 
     public enum class LogType {

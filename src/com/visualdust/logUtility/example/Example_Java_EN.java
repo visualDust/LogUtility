@@ -8,7 +8,7 @@ import java.io.FileOutputStream;
 
 public class Example_Java_EN {
     void runExample() {
-        Logger.setWriteInitialMessage(false);
+        Logger.setWritePlatFormMessage(false);
         /* It's on by default. But you don't want to see any long-complex-meaningless logs
          * in this example right? So we set it to false here :)
          */
@@ -22,12 +22,15 @@ public class Example_Java_EN {
          * "DefaultLoggerName_year_month_dayOfMonth_Log_.html"
          * If you don't like this behavior, just use constructor below:
          * Logger(this:generator, false:autoAddDefaultLogFile) so that
-         * you have to add log streams manually.
+         * you have to add file streams manually or you just don't need to log to a file.
          */
 
-        /* Add System.out to the logger so that your log will be printed into terminal
+        /* For now there is no need to add System.out to the logger manually. It will be added automatically.
+         * If you don't like this behavior, do like this:
+         * Logger.setAutoBindToTerminal(false)
+         * And you may add it where you need
          */
-        logger.add(new OutStreamWithType(System.out, Logger.LogType.Shell));
+//        logger.add(new OutStreamWithType(System.out, Logger.LogType.Shell));
         /* When you call the Logger.add(stream:OutputStreamWithType) method,
          * your logger will add this output stream to a global log channel.
          * this action will be transfer into:

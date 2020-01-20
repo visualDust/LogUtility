@@ -8,7 +8,7 @@ import java.io.FileOutputStream;
 
 public class Example_Java_CN {
     void runExample() {
-        Logger.setWriteInitialMessage(false);
+        Logger.setWritePlatFormMessage(false);
         /* 默认情况下处于启用状态。 但是您不希望在此示例中看到任何冗长无意义的日志，对吗？ 所以我们在这里将其设置为false :)
          */
 
@@ -18,12 +18,14 @@ public class Example_Java_CN {
         /* 当您使用上述构造函数初始化记录器时，记录器将自动添加指向名为“ DefaultLoggerName_year_month_dayOfMonth_Log_.html”文件的html类
          * 型的输出流。如果您不喜欢这种行为，请使用下面的构造函数：
          * Logger（this：generator，false：autoAddDefaultLogFile）
-         * 不过这样您必须手动添加日志流。
+         * 不过这样您必须手动添加文件日志流，或者你就没打算输出到文件。
          */
 
-        /* 将System.out添加到记录器，以便将您的日志打印到终端中
+        /* 现在没有必要手动将System.out添加到记录器了。因为会自动添加。如果你不喜欢这一行为，可以进行如下操作:
+         * Logger.setAutoBindToTerminal(false)
+         * 然后按需手动添加
          */
-        logger.add(new OutStreamWithType(System.out, Logger.LogType.Shell));
+//        logger.add(new OutStreamWithType(System.out, Logger.LogType.Shell));
         /* 当您调用Logger.add（stream：OutputStreamWithType）方法时，记录器会将此输出流添加到全局日志通道。
          * 该操作将转换为：
          * Logger.add（stream：OutputStreamWithType，0：channel）
