@@ -43,14 +43,14 @@ class Logger {
         if (!channelDictionary.containsKey(channel))
             channelDictionary[channel] = mutableListOf()
         channelDictionary.getValue(channel).add(stream)
-        if (WriteInitialOSProperties) {
-            var initMessage =
-                "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---(Version:${Version})---]--- got involved.</p>\n" +
-                        "<p>---[PlatForm info]</p>\n"
+        var initMessage =
+            "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---(Version:${Version})---]--- got involved.</p>\n"
+        if (WriteInitialMessage) {
+            initMessage += "<p>---[PlatForm info]</p>\n"
             for (item in OsProperties)
                 initMessage += "<p>" + item.key + " : " + item.value + "</p>\n"
-            write(stream.stream, initMessage)
         }
+        write(stream.stream, initMessage)
     }
 
     fun add(stream: OutStreamWithType) = add(stream, 0)
@@ -180,7 +180,7 @@ class Logger {
         @JvmStatic
         var StartUpTime: LocalDateTime = LocalDateTime.now()
         @JvmStatic
-        var WriteInitialOSProperties = true
+        var WriteInitialMessage = true
         @JvmStatic
         val DefaultTimeout = 500L
         @JvmStatic
@@ -192,7 +192,7 @@ class Logger {
         var PrintStackTraceOnException = false
     }
 
-    enum class LogType {
+    public enum class LogType {
         Any, HTML, Shell
     }
 
@@ -213,4 +213,4 @@ class Logger {
     }
 }
 
-class OutStreamWithType(var stream: OutputStream, var type: Logger.LogType)
+public class OutStreamWithType(var stream: OutputStream, var type: Logger.LogType)

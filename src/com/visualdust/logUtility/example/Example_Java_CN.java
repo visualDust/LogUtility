@@ -8,7 +8,7 @@ import java.io.FileOutputStream;
 
 public class Example_Java_CN {
     void runExample() {
-        Logger.setWriteInitialOSProperties(false);
+        Logger.setWriteInitialMessage(false);
         /* 默认情况下处于启用状态。 但是您不希望在此示例中看到任何冗长无意义的日志，对吗？ 所以我们在这里将其设置为false :)
          */
 

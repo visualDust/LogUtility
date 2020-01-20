@@ -1,14 +1,13 @@
 package com.visualdust.logUtility.example
 
 import com.visualdust.logUtility.Logger
-import com.visualdust.logUtility.Logger.Companion.WriteInitialOSProperties
 import com.visualdust.logUtility.OutStreamWithType
 import java.io.File
 import java.io.FileOutputStream
 
 class Example_Kotlin_EN {
     fun runExample() {
-        Logger.WriteInitialOSProperties = false
+        Logger.WriteInitialMessage = false
         /* It's on by default. But you don't want to see any long-complex-meaningless logs
          * in this example right? So we set it to false here :)
          */
