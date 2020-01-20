@@ -74,9 +74,9 @@ class Logger {
                 resolver.accept(RelatedEvent(generator, e))
         var eMessage = "${e.message}"
         var traceCnt = 0
-        for (stacktrace in e.stackTrace) {
-            eMessage += "${LogSeparator}${stacktrace}"
-            if (++traceCnt >= LimitStackTraceOnException) break
+        for (i in e.stackTrace.lastIndex downTo 0) {
+            eMessage += "${LogSeparator}${e.stackTrace[i]}"
+            if (++traceCnt >= LimitStackTraceOnException+1) break
         }
         logFormatted("%false%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${eMessage}\n", channel)
         if (PrintStackTraceOnException) e.printStackTrace()
