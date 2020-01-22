@@ -22,7 +22,7 @@ class Logger {
     private var genHtmlBG = WebColor.White
     private var timeout = DefaultTimeout
     private var exceptionResolvers:
-            HashMap<Int, MutableList<Consumer<RelatedEvent<Any, java.lang.Exception>>>> = HashMap()
+            HashMap<Int, MutableList<Consumer<RelatedEvent<Any, Exception>>>> = HashMap()
     private var eventResolvers: HashMap<Int, MutableList<Consumer<RelatedEvent<Any, String>>>> = HashMap()
 
     init {
@@ -47,6 +47,7 @@ class Logger {
     fun add(stream: OutStreamWithType, channel: Int) {
         if (!channelDictionary.containsKey(channel))
             channelDictionary[channel] = mutableListOf()
+        if (channelDictionary.getValue(channel).contains(stream)) return
         channelDictionary.getValue(channel).add(stream)
         var initMessage =
             "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---(Version:${Version})---]--- got involved.</p>\n"
@@ -66,9 +67,49 @@ class Logger {
         }
     }
 
+    fun debug(str: String) = debug(str, 0)
+    fun debug(str: String, channel: Int) {
+        if (EnableDebugging) logFormatted("%dbg%${LogSeparator}%gen%${str}", channel)
+    }
+
+    fun debug(e: Exception) = debug(e, 0)
+    fun debug(e: Exception, channel: Int) = debug("", e, "", channel)
+    fun debug(prefix: String, e: Exception, postfix: String) = debug(prefix, e, postfix, 0)
+
+    fun debug(prefix: String, e: Exception, postfix: String, channel: Int) {
+        if (EnableDebugging) {
+            if (exceptionResolvers.containsKey(channel))
+                for (resolver in exceptionResolvers.getValue(channel))
+                    resolver.accept(RelatedEvent(generator, e))
+            var eMessage = "${e.message}"
+            var traceCnt = 0
+            for (i in e.stackTrace.lastIndex downTo 0) {
+                eMessage += "${LogSeparator}${e.stackTrace[i]}"
+                if (++traceCnt >= LimitStackTraceOnException + 1) break
+            }
+            eMessage = prefix + eMessage + postfix
+            logFormatted(
+                "%dbg%${LogSeparator}%false%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${eMessage}\n",
+                channel
+            )
+            if (PrintStackTraceOnException) e.printStackTrace()
+        }
+    }
+
+    fun debug(succeed: Boolean, message: String) = debug(succeed, message, 0)
+    fun debug(succeed: Boolean, message: String, channel: Int) {
+        if (EnableDebugging) logFormatted(
+            "%dbg%${LogSeparator}%${succeed.toString().toLowerCase()}%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${message}\n",
+            channel
+        )
+    }
+
     fun log(str: String, channel: Int) = logFormatted("%tif%${LogSeparator}%gen%${LogSeparator}${str}\n", channel)
     fun log(str: String) = log(str, 0)
-    fun log(e: Exception, channel: Int) {
+    fun log(e: Exception, channel: Int) = log("", e, "", channel)
+    fun log(prefix: String, e: Exception, postfix: String) = log(prefix, e, postfix, 0)
+
+    fun log(prefix: String, e: Exception, postfix: String, channel: Int) {
         if (exceptionResolvers.containsKey(channel))
             for (resolver in exceptionResolvers.getValue(channel))
                 resolver.accept(RelatedEvent(generator, e))
@@ -78,20 +119,23 @@ class Logger {
             eMessage += "${LogSeparator}${e.stackTrace[i]}"
             if (++traceCnt >= LimitStackTraceOnException + 1) break
         }
+        eMessage = prefix + eMessage + postfix
         logFormatted("%false%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${eMessage}\n", channel)
         if (PrintStackTraceOnException) e.printStackTrace()
     }
 
     fun log(e: Exception) = log(e, 0)
+    fun log(succeed: Boolean, message: String) = log(succeed, message, 0)
+
     fun log(succeed: Boolean, message: String, channel: Int) =
         logFormatted(
             "%${succeed.toString().toLowerCase()}%${LogSeparator}%tif%${LogSeparator}%gen%${LogSeparator}${message}\n",
             channel
         )
 
-    fun log(succeed: Boolean, message: String) = log(succeed, message, 0)
     /**
      * @param formattedStr can include escape characters below :
+     * %dbg%   ->  show an debug tag
      * %gen%   ->  generator name
      * %true%  ->  show a "√"
      * %false% ->  show a "×"
@@ -117,6 +161,10 @@ class Logger {
             LogType.Shell -> {
                 val processedStr = str
                     .replace(
+                        "%dbg%",
+                        ASS("Debug").applyBG(ShellBG.Purple).applyFG(ShellFG.White).applyStyle(ShellStyle.Flicker).toString()
+                    )
+                    .replace(
                         "%gen%",
                         ASS(generator).applyBG(genShellBG).applyFG(ShellFG.White).applyStyle(ShellStyle.Underline).toString()
                     )
@@ -140,6 +188,7 @@ class Logger {
             }
             LogType.HTML -> {
                 val processedStr = "<p>" + str
+                    .replace("%dbg%", AHS("Debug").applyBG(BIColor.Orange).applyFG(BIColor.White).toString())
                     .replace(
                         "%gen%",
                         AHS(generator).applyBG(Color(140, 0, 176)).applyFG(BIColor.White).toString()
@@ -193,12 +242,22 @@ class Logger {
         eventResolvers.getValue(channel).add(resolver)
     }
 
-    fun addExceptionResolver(resolver: Consumer<RelatedEvent<Any, java.lang.Exception>>) =
+    fun removeEventResolver(resolver: Consumer<RelatedEvent<Any, String>>, channel: Int) {
+        if (!eventResolvers.containsKey(channel)) return
+        eventResolvers.getValue(channel).remove(resolver)
+    }
+
+    fun addExceptionResolver(resolver: Consumer<RelatedEvent<Any, Exception>>) =
         addExceptionResolver(resolver, 0)
 
-    fun addExceptionResolver(resolver: Consumer<RelatedEvent<Any, java.lang.Exception>>, channel: Int) {
+    fun addExceptionResolver(resolver: Consumer<RelatedEvent<Any, Exception>>, channel: Int) {
         if (!exceptionResolvers.containsKey(channel)) exceptionResolvers.put(channel, mutableListOf())
         exceptionResolvers.getValue(channel).add(resolver)
+    }
+
+    fun removeExceptionResolver(resolver: Consumer<RelatedEvent<Any, Exception>>, channel: Int) {
+        if (!exceptionResolvers.containsKey(channel)) return
+        exceptionResolvers.getValue(channel).remove(resolver)
     }
 
     companion object {
@@ -210,18 +269,30 @@ class Logger {
         @JvmStatic val DefaultTimeout = 500L
         @JvmStatic var LogSeparator = ">"
         @JvmStatic var LimitStackTraceOnException = 1
+        @JvmStatic var EnableDebugging = true
         @JvmStatic var PrintStackTraceOnException = false
         @JvmStatic var AutoBindToTerminal = true
         @JvmStatic var DefaultLogFileName =
             "${DefaultLoggerName}_" + "${StartUpTime.year}_" + "${StartUpTime.month}_" + "${StartUpTime.dayOfMonth}_Log_.html"
         private var channelDictionary = HashMap<Int, MutableList<OutStreamWithType>>()
+//        @JvmStatic private var remoteAttendant : RemoteMonitorAttendant? =null
+//        fun EnableRemoteConnection(port: Int) {
+//            if (remoteAttendant==null) remoteAttendant = RemoteMonitorAttendant(port)
+//            else Logger(this).log(Exception("Already opened remote attendant on ${remoteAttendant!!.port}"))
+//        }
+//        fun StartRemoteAttendant(){
+//            if (remoteAttendant!=null){
+//                if (remoteAttendant.start())
+//            }
+//        }
+//        fun StopRemoteAttendant(){}
+//        fun DisableRemoteAttendant(){}
     }
 
     public enum class LogType {
         Any, HTML, Shell
     }
 
-    class RelatedEvent<T, V>(val who: T, val message: V) {}
 
     private class StreamAttendant
         (var stream: OutputStream, message: String, var timeout: Long) : Runnable {
@@ -240,4 +311,5 @@ class Logger {
     }
 }
 
-public class OutStreamWithType(var stream: OutputStream, var type: Logger.LogType)
+class OutStreamWithType(var stream: OutputStream, var type: Logger.LogType)
+class RelatedEvent<T, V>(val who: T, val containing: V)
