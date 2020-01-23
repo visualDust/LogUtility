@@ -69,7 +69,7 @@ class Logger {
 
     fun debug(str: String) = debug(str, 0)
     fun debug(str: String, channel: Int) {
-        if (EnableDebugging) logFormatted("%dbg%${LogSeparator}%gen%${str}", channel)
+        if (EnableDebugging) logFormatted("%dbg%${LogSeparator}%gen%${str}\n", channel)
     }
 
     fun debug(e: Exception) = debug(e, 0)
