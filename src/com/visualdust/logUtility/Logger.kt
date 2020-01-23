@@ -30,21 +30,26 @@ class Logger {
             genShellBG = ShellBG.values().elementAt(Random.nextInt(0, ShellBG.values().size))
         while (genHtmlBG == WebColor.White)
             genHtmlBG = WebColor.values().elementAt(Random.nextInt(0, WebColor.values().size))
-        if (!StaticInitialized && AutoBindToTerminal) {
+        if (!AutoTerminalBinded && AutoBindToTerminal) {
             add(OutStreamWithType(System.out, LogType.Shell))
-            StaticInitialized = true
+            AutoTerminalBinded = true
         }
     }
 
     constructor(generator: Any) {
         this.generator = generator
-        add(OutStreamWithType(FileOutputStream(File(DefaultLogFileName), true), LogType.HTML))
+        if (!DefaultLogFileAdded) {
+            add(OutStreamWithType(FileOutputStream(File(DefaultLogFileName), true), LogType.HTML))
+            DefaultLogFileAdded = true
+        }
     }
 
     constructor(generator: Any, autoAddDefaultLogFile: Boolean) {
         this.generator = generator
-        if (autoAddDefaultLogFile)
+        if ((!DefaultLogFileAdded) && autoAddDefaultLogFile) {
             add(OutStreamWithType(FileOutputStream(File(DefaultLogFileName), true), LogType.HTML))
+            DefaultLogFileAdded = true
+        }
     }
 
     fun add(stream: OutStreamWithType, channel: Int) {
@@ -165,7 +170,7 @@ class Logger {
                 val processedStr = str
                     .replace(
                         "%dbg%",
-                        ASS("Debug").applyBG(ShellBG.Purple).applyFG(ShellFG.White).applyStyle(ShellStyle.Flicker).toString()
+                        ASS("[${DebugPrefix}]").applyBG(ShellBG.Purple).applyFG(ShellFG.White).applyStyle(ShellStyle.Flicker).toString()
                     )
                     .replace(
                         "%gen%",
@@ -191,7 +196,7 @@ class Logger {
             }
             LogType.HTML -> {
                 val processedStr = "<p>" + str
-                    .replace("%dbg%", AHS("Debug").applyBG(BIColor.Orange).applyFG(BIColor.White).toString())
+                    .replace("%dbg%", AHS("[${DebugPrefix}]").applyBG(BIColor.Orange).applyFG(BIColor.White).toString())
                     .replace(
                         "%gen%",
                         AHS(generator).applyBG(Color(140, 0, 176)).applyFG(BIColor.White).toString()
@@ -271,11 +276,13 @@ class Logger {
         @JvmStatic var StartUpTime: LocalDateTime = LocalDateTime.now()
         @JvmStatic val DefaultTimeout = 500L
         @JvmStatic var LogSeparator = ">"
+        @JvmStatic var DebugPrefix = "⊙"
         @JvmStatic var LimitStackTraceOnException = 1
         @JvmStatic var EnableDebugging = true
         @JvmStatic var PrintStackTraceOnException = false
         @JvmStatic var AutoBindToTerminal = true
-        private var StaticInitialized = false
+        private var AutoTerminalBinded = false
+        private var DefaultLogFileAdded = false
         @JvmStatic var DefaultLogFileName =
             "${DefaultLoggerName}_" + "${StartUpTime.year}_" + "${StartUpTime.month}_" + "${StartUpTime.dayOfMonth}_Log_.html"
         private var channelDictionary = HashMap<Int, MutableList<OutStreamWithType>>()
