@@ -55,6 +55,7 @@ new FileOutputStream(file).Write("xxx occurred when"+LocalDateTime.now());
 - [x] Mutiple output stream is supported
 - [x] Behave like a broadcaster and easy to classify
 - [x] Looks good with color in both terminal and log files
+- [X] Separated debug infomation and log
 
 `简体中文`  
 - [x] 轻量级并且易用
@@ -62,6 +63,7 @@ new FileOutputStream(file).Write("xxx occurred when"+LocalDateTime.now());
 - [x] 支持多个输出流
 - [x] 输出log表现地像是广播，易于分类
 - [x] 终端和日志文件中的颜色看起来都不错
+- [X] 调试信息与日志可分离
 
 ---
 
