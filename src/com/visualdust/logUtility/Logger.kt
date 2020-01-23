@@ -264,7 +264,7 @@ class Logger {
     }
 
     companion object {
-        val Version = "0.0.1.6"
+        val Version = "0.1.0.0"
         @JvmStatic var WritePlatFormMessage = true
         @JvmStatic val DefaultLoggerName: String = "Logger"
         @JvmStatic private val OsProperties = System.getProperties()
