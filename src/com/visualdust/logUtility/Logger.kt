@@ -241,7 +241,9 @@ class Logger {
     }
 
     private fun write(stream: OutputStream, message: String) {
-        Thread(StreamAttendant(stream, message, timeout)).start()
+        //todo rewrite this to queue like
+//        Thread(StreamAttendant(stream, message, timeout)).start()
+        stream.write((StaticPrefix + message + StaticPostfix).toByteArray())
     }
 
     fun addEventResolver(resolver: Consumer<RelatedEvent<Any, String>>) = addEventResolver(resolver, 0)
@@ -274,13 +276,15 @@ class Logger {
         @JvmStatic val DefaultLoggerName: String = "Logger"
         @JvmStatic private val OsProperties = System.getProperties()
         @JvmStatic var StartUpTime: LocalDateTime = LocalDateTime.now()
-        @JvmStatic val DefaultTimeout = 500L
+        @JvmStatic val DefaultTimeout = 10000L
         @JvmStatic var LogSeparator = ">"
-        @JvmStatic var DebugPrefix = "⊙"
+        @JvmStatic var DebugPrefix = "Δ"
         @JvmStatic var LimitStackTraceOnException = 1
         @JvmStatic var EnableDebugging = true
         @JvmStatic var PrintStackTraceOnException = false
         @JvmStatic var AutoBindToTerminal = true
+        @JvmStatic var StaticPrefix = ""
+        @JvmStatic var StaticPostfix = ""
         private var AutoTerminalBinded = false
         private var DefaultLogFileAdded = false
         @JvmStatic var DefaultLogFileName =
