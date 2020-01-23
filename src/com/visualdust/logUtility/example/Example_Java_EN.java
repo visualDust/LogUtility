@@ -8,10 +8,6 @@ import java.io.FileOutputStream;
 
 public class Example_Java_EN {
     void runExample() {
-        Logger.setWritePlatFormMessage(false);
-        /* It's on by default. But you don't want to see any long-complex-meaningless logs
-         * in this example right? So we set it to false here :)
-         */
 
         /* Firstly you need a logger especially for this object. When you read your log later,
          * you will know about every log was occurred by which object.

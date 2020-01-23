@@ -7,10 +7,6 @@ import java.io.FileOutputStream
 
 class Example_Kotlin_EN {
     fun runExample() {
-        Logger.WritePlatFormMessage = false
-        /* It's on by default. But you don't want to see any long-complex-meaningless logs
-         * in this example right? So we set it to false here :)
-         */
 
         /* Firstly you need a logger especially for this object. When you read your log later,
          * you will know about every log was occurred by which object.

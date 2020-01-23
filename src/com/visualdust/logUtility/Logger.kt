@@ -59,12 +59,16 @@ class Logger {
         channelDictionary.getValue(channel).add(stream)
         var initMessage =
             "<p>---[---(LogUtility)---(github.com/VisualDust/LogUtility)---(Version:${Version})---]--- got involved.</p>\n"
-        if (WritePlatFormMessage) {
-            initMessage += "<p>---[PlatForm info]</p>\n"
-            for (item in OsProperties)
-                initMessage += "<p>" + item.key + " : " + item.value + "</p>\n"
-        }
+
         write(stream.stream, initMessage)
+    }
+
+    fun getPlatformMessage(): String {
+        var initMessage = ""
+        initMessage += "<p>---[PlatForm info]</p>\n"
+        for (item in OsProperties)
+            initMessage += "<p>" + item.key + " : " + item.value + "</p>\n"
+        return initMessage
     }
 
     fun add(stream: OutStreamWithType) = add(stream, 0)
@@ -177,7 +181,10 @@ class Logger {
                         ASS(generator).applyBG(genShellBG).applyFG(ShellFG.White).applyStyle(ShellStyle.Underline).toString()
                     )
                     .replace("%true%", ASS("[√]").applyFG(ShellFG.Green).applyStyle(ShellStyle.Inverse).toString())
-                    .replace("%false%", ASS("[×]").applyFG(ShellFG.Red).applyStyle(ShellStyle.Inverse).toString())
+                    .replace(
+                        "%false%",
+                        ASS("[×]").applyBG(ShellBG.Red).applyFG(ShellFG.White).applyStyle(ShellStyle.Flicker).toString()
+                    )
                     .replace("%tif%", ASS(ldt).applyStyle(ShellStyle.Inverse).toString())
                     .replace(
                         "%tis%",
@@ -230,20 +237,23 @@ class Logger {
         broadcast(oriMessage, message, LogType.Any, channel)
 
     private fun broadcast(oriMessage: String, message: String, type: LogType, channel: Int) {
+        var finalMsg = message
+        if (StaticPrefixDictionary.containsKey(type)) finalMsg = StaticPrefixDictionary.getValue(type) + finalMsg
+        if (StaticPostfixDictionary.containsKey(type)) finalMsg += StaticPostfixDictionary.getValue(type)
         if (eventResolvers.containsKey(channel))
             for (resolver in eventResolvers.getValue(channel))
                 resolver.accept(RelatedEvent(generator, oriMessage))
         if (!channelDictionary.containsKey(channel)) return
-        if (channel != 0) broadcast(oriMessage, message, type, 0)
+        if (channel != 0) broadcast(oriMessage, finalMsg, type, 0)
         val subscriberList = channelDictionary.getValue(channel)
         for (subscriber in subscriberList)
-            if (subscriber.type == type) write(subscriber.stream, message)
+            if (subscriber.type == type) write(subscriber.stream, finalMsg)
     }
 
     private fun write(stream: OutputStream, message: String) {
         //todo rewrite this to queue like
 //        Thread(StreamAttendant(stream, message, timeout)).start()
-        stream.write((StaticPrefix + message + StaticPostfix).toByteArray())
+        stream.write(message.toByteArray())
     }
 
     fun addEventResolver(resolver: Consumer<RelatedEvent<Any, String>>) = addEventResolver(resolver, 0)
@@ -272,7 +282,6 @@ class Logger {
 
     companion object {
         const val Version = "0.1.0.0"
-        @JvmStatic var WritePlatFormMessage = true
         @JvmStatic val DefaultLoggerName: String = "Logger"
         @JvmStatic private val OsProperties = System.getProperties()
         @JvmStatic var StartUpTime: LocalDateTime = LocalDateTime.now()
@@ -283,8 +292,18 @@ class Logger {
         @JvmStatic var EnableDebugging = true
         @JvmStatic var PrintStackTraceOnException = false
         @JvmStatic var AutoBindToTerminal = true
-        @JvmStatic var StaticPrefix = ""
-        @JvmStatic var StaticPostfix = ""
+        @JvmStatic private val StaticPrefixDictionary = hashMapOf<LogType, String>()
+        @JvmStatic private val StaticPostfixDictionary = hashMapOf<LogType, String>()
+        @JvmStatic
+        fun setStaticPrefix(type: LogType, prefix: String) {
+            StaticPrefixDictionary[type] = prefix
+        }
+
+        @JvmStatic
+        fun setStaticPostfix(type: LogType, postfix: String) {
+            StaticPostfixDictionary[type] = postfix
+        }
+
         private var AutoTerminalBinded = false
         private var DefaultLogFileAdded = false
         @JvmStatic var DefaultLogFileName =

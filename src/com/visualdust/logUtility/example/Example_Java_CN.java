@@ -8,9 +8,6 @@ import java.io.FileOutputStream;
 
 public class Example_Java_CN {
     void runExample() {
-        Logger.setWritePlatFormMessage(false);
-        /* 默认情况下处于启用状态。 但是您不希望在此示例中看到任何冗长无意义的日志，对吗？ 所以我们在这里将其设置为false :)
-         */
 
         /* 首先，您需要一个专门用于此对象的记录器。 以后阅读日志时，您将知道每个日志是由哪个对象发生的。
          */

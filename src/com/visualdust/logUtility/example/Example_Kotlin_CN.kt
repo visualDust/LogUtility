@@ -7,11 +7,6 @@ import java.io.FileOutputStream
 
 class Example_Kotlin_CN {
     fun runExample() {
-
-        Logger.WritePlatFormMessage = false
-        /* 默认情况下处于启用状态。 但是您不希望在此示例中看到任何冗长无意义的日志，对吗？ 所以我们在这里将其设置为false :)
-         */
-
         /* 首先，您需要一个专门用于此对象的记录器。 以后阅读日志时，您将知道每个日志是由哪个对象发生的。
          */
         val logger = Logger(this, false)
