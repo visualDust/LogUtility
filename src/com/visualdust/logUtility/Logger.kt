@@ -30,7 +30,10 @@ class Logger {
             genShellBG = ShellBG.values().elementAt(Random.nextInt(0, ShellBG.values().size))
         while (genHtmlBG == WebColor.White)
             genHtmlBG = WebColor.values().elementAt(Random.nextInt(0, WebColor.values().size))
-        if (!StaticInitialized && AutoBindToTerminal) add(OutStreamWithType(System.out, LogType.Shell))
+        if (!StaticInitialized && AutoBindToTerminal) {
+            add(OutStreamWithType(System.out, LogType.Shell))
+            StaticInitialized = true
+        }
     }
 
     constructor(generator: Any) {
@@ -69,7 +72,7 @@ class Logger {
 
     fun debug(str: String) = debug(str, 0)
     fun debug(str: String, channel: Int) {
-        if (EnableDebugging) logFormatted("%dbg%${LogSeparator}%gen%${str}\n", channel)
+        if (EnableDebugging) logFormatted("%dbg%${LogSeparator}%gen%${LogSeparator}${str}\n", channel)
     }
 
     fun debug(e: Exception) = debug(e, 0)
