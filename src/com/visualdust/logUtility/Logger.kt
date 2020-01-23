@@ -30,7 +30,7 @@ class Logger {
             genShellBG = ShellBG.values().elementAt(Random.nextInt(0, ShellBG.values().size))
         while (genHtmlBG == WebColor.White)
             genHtmlBG = WebColor.values().elementAt(Random.nextInt(0, WebColor.values().size))
-        if (AutoBindToTerminal) add(OutStreamWithType(System.out, LogType.Shell))
+        if (!StaticInitialized && AutoBindToTerminal) add(OutStreamWithType(System.out, LogType.Shell))
     }
 
     constructor(generator: Any) {
@@ -272,6 +272,7 @@ class Logger {
         @JvmStatic var EnableDebugging = true
         @JvmStatic var PrintStackTraceOnException = false
         @JvmStatic var AutoBindToTerminal = true
+        private var StaticInitialized = false
         @JvmStatic var DefaultLogFileName =
             "${DefaultLoggerName}_" + "${StartUpTime.year}_" + "${StartUpTime.month}_" + "${StartUpTime.dayOfMonth}_Log_.html"
         private var channelDictionary = HashMap<Int, MutableList<OutStreamWithType>>()
