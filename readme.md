@@ -73,7 +73,7 @@ new FileOutputStream(file).Write("xxx occurred when"+LocalDateTime.now());
  [![Example-java_English](https://img.shields.io/badge/Example-Java_English-blue)](https://github.com/visualDust/LogUtility/blob/master/src/com/visualdust/logUtility/example/Example_Java_EN.java) [![Example-kotlin_English](https://img.shields.io/badge/Example-Kotlin_English-green)](https://github.com/visualDust/LogUtility/blob/master/src/com/visualdust/logUtility/example/Example_Kotlin_EN.kt)   
 
  `简体中文` 稍微看一下使用样例便能快速开始 :  
-  [![样例-java_中文](https://img.shields.io/badge/样例-Java_中文-red)](https://github.com/visualDust/LogUtility/blob/master/src/com/visualdust/logUtility/example/Example_Java_EN.java) [![样例-kotlin_中文](https://img.shields.io/badge/样例-Kotlin_中文-orange)](https://github.com/visualDust/LogUtility/blob/master/src/com/visualdust/logUtility/example/Example_Kotlin_EN.kt)  
+  [![样例-java_中文](https://img.shields.io/badge/样例-Java_中文-red)](https://github.com/visualDust/LogUtility/blob/master/src/com/visualdust/logUtility/example/Example_Java_CN.java) [![样例-kotlin_中文](https://img.shields.io/badge/样例-Kotlin_中文-orange)](https://github.com/visualDust/LogUtility/blob/master/src/com/visualdust/logUtility/example/Example_Kotlin_CN.kt)  
 
   ---
 
